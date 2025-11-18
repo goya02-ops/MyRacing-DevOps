@@ -1,0 +1,79 @@
+services:
+  # ----------------------------------------------------
+  # BASE DE DATOS (MySQL)
+  # ----------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: myracing_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password_segura
+      MYSQL_DATABASE: myracing
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: MiR@cing_2025!
+    ports:
+      - "3306:3306" 
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - myracing-network
+    # AÑADIDO: Healthcheck para que el backend espere a que MySQL esté listo
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "admin", "-pMiR@cing_2025!"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------
+  # BACKEND (Express/MikroORM)
+  # ----------------------------------------------------
+  backend:
+    build:
+      context: ./MyRacing-Backend 
+      dockerfile: Dockerfile
+    container_name: myracing_backend
+    ports:
+      - "3000:3000" 
+    volumes:
+      - ./MyRacing-Backend:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - myracing-network
+    # CAMBIADO: 'depends_on' ahora espera a que el healthcheck de MySQL sea exitoso
+    depends_on:
+      mysql:
+        condition: service_healthy 
+
+  # ----------------------------------------------------
+  # FRONTEND (Vite/React)
+  # ----------------------------------------------------
+  frontend:
+    build:
+      context: ./MyRacing-Frontend 
+      dockerfile: Dockerfile
+    container_name: myracing_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      # CAMBIADO: El navegador (cliente) debe apuntar a localhost:3000 (el puerto mapeado del backend)
+      VITE_API_BASE_URL: http://localhost:3000/api
+      
+      # AÑADIDO: Configuración explícita de HMR para Vite/Docker
+      VITE_HMR_PROTOCOL: ws
+      VITE_HMR_HOST: localhost
+      VITE_HMR_PORT: 5173
+    volumes:
+      - ./MyRacing-Frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - myracing-network
+    depends_on:
+      - backend
+
+# Definición de volúmenes para persistencia de datos
+volumes:
+  db_data:
+
+# Definición de la red
+networks:
+  myracing-network:
+    driver: bridge

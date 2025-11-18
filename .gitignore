@@ -1,0 +1,9 @@
+# /MyRacing-DevOps/.gitignore
+# Ignorar las carpetas que son sus propios repositorios Git clonados
+MyRacing-Frontend/
+MyRacing-Backend/
+*.code-workspace
+
+# Ignorar archivos generados o logs
+.DS_Store
+*.log
