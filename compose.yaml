@@ -38,7 +38,18 @@ services:
       - /usr/src/app/node_modules
     networks:
       - myracing-network
-    # CAMBIADO: 'depends_on' ahora espera a que el healthcheck de MySQL sea exitoso
+    environment:
+      - DB_HOST=myracing_mysql
+      - DB_PORT=3306
+      - DB_NAME=myracing
+      - DB_USER=admin
+      - DB_PASSWORD=MiR@cing_2025!
+      - JWT_SECRET=my_racing_secret_key_2025
+      - JWT_REFRESH_SECRET=my_racing_refresh_secret_key_2025
+      - MERCADOPAGO_ACCESS_TOKEN=TEST-2791221834917656-110515-cf5aa4145fa2e1894e7b0778046ca8d9-298633351
+      - URL_FRONTEND=http://localhost:5173
+      - URL_BACKEND=http://localhost:3000
+      - URL_WEBHOOK_MP=http://localhost:3000/api/payment/wh-mp
     depends_on:
       mysql:
         condition: service_healthy 
