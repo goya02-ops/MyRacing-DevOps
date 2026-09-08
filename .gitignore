@@ -1,9 +1,14 @@
-# /MyRacing-DevOps/.gitignore
-# Ignorar las carpetas que son sus propios repositorios Git clonados
+# MyRacing-DevOps/.gitignore
+# Los sub-proyectos son repositorios Git propios (MyRacing-Backend y
+# MyRacing-Frontend), clonados aquí solo para desarrollo y orquestación local.
+# No se versionan en este repo: cada uno vive y se despliega desde su propio
+# repositorio en GitHub.
 MyRacing-Frontend/
 MyRacing-Backend/
+
+# Workspaces del editor
 *.code-workspace
 
-# Ignorar archivos generados o logs
+# Archivos generados o logs
 .DS_Store
 *.log
