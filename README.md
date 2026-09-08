@@ -1,42 +1,63 @@
 # MyRacing - DevOps Stack
 
-Entorno de orquestación que unifica Frontend, Backend y Base de Datos para desarrollo y producción.
+Repositorio de orquestación que coordina los dos sub-proyectos de MyRacing:
+la API REST (backend) y la SPA (frontend), junto con la documentación del
+trabajo práctico.
 
 ## Estructura del Proyecto
 
+El proyecto está dividido en **3 repositorios Git separados**, cada uno con su
+propio ciclo de vida (ramas, CI/CD, deploy):
+
 ```
-MyRacing-DevOps/
-├── compose.yaml       # Producción (Full stack en Docker)
-├── compose.dev.yaml   # Desarrollo (solo MySQL en Docker)
-├── README.md          # Este archivo
-├── MyRacing-Backend/ # API REST (Express + TypeScript + MikroORM)
-└── MyRacing-Frontend/ # SPA (React + Vite + TypeScript)
+MyRacing-DevOps/                  ← este repo (orquestación y docs)
+├── compose.dev.yaml              # Opcional: solo MySQL 8 para desarrollo
+├── docs/                         # Diagramas, minutas y documentación del TP
+├── Enunciado.md                  # Consigna del trabajo práctico
+└── README.md
+├── MyRacing-Backend/             → goya02-ops/MyRacing-Backend (clon local, NO versionado acá)
+│   Express 5 + TypeScript + MikroORM + MySQL
+└── MyRacing-Frontend/            → goya02-ops/MyRacing-Frontend (clon local, NO versionado acá)
+    React 19 + Vite + TypeScript + Tailwind/Tremor
 ```
+
+Los sub-proyectos **no se versionan en este repo**: cada uno vive y se despliega
+desde su propio repositorio en GitHub.
 
 ---
 
 ## Requisitos Previos
 
-- **Docker Desktop** (o Docker Engine)
-- **pnpm** instalado: `npm install -g pnpm`
+- **Node.js 20+** y **pnpm** (`npm install -g pnpm`)
+- **MySQL 8** accesible (nativo, cloud o vía Docker opcional, ver abajo)
 
 ---
 
-## Desarrollo Local (Recomendado)
+## Desarrollo Local (sin Docker — recomendado)
 
-### 1. Levantar MySQL
+### 1. Base de datos
 
-```bash
-docker compose -f compose.dev.yaml up -d
-```
+El backend necesita un MySQL 8 con una base `myracing`. Opciones:
 
-### 2. Configurar Variables de Entorno
+- **MySQL nativo/cloud**: creá la base y el usuario una única vez:
+  ```sql
+  CREATE DATABASE myracing;
+  CREATE USER 'admin'@'localhost' IDENTIFIED BY 'MiR@cing_2025!';
+  GRANT ALL PRIVILEGES ON myracing.* TO 'admin'@'localhost';
+  ```
+- **Docker opcional** (solo para la DB): `docker compose -f compose.dev.yaml up -d`
+
+> Las tablas se crean automáticamente al arrancar el backend (MikroORM
+> sincroniza el esquema en desarrollo).
+
+### 2. Configurar variables de entorno
 
 ```bash
 cp MyRacing-Backend/.env.example MyRacing-Backend/.env
+cp MyRacing-Frontend/.env.example MyRacing-Frontend/.env   # si existe; el frontend usa VITE_*
 ```
 
-### 3. Instalar Dependencias
+### 3. Instalar dependencias
 
 ```bash
 cd MyRacing-Backend && pnpm install
@@ -59,16 +80,6 @@ cd MyRacing-Frontend && pnpm dev
 
 ---
 
-## Producción (Docker)
-
-Levanta todo el stack en contenedores:
-
-```bash
-docker compose up --build
-```
-
----
-
 ## Scripts Disponibles
 
 ### Backend
@@ -77,6 +88,7 @@ docker compose up --build
 pnpm dev      # Desarrollo (tsx con hot reload)
 pnpm build    # Compilar TypeScript
 pnpm start    # Producción
+pnpm test     # Tests (Vitest)
 ```
 
 ### Frontend
@@ -85,14 +97,30 @@ pnpm start    # Producción
 pnpm dev      # Desarrollo (Vite)
 pnpm build    # Build producción
 pnpm lint     # Linting
-pnpm test     # Tests
+pnpm test     # Tests (Vitest)
 ```
+
+---
+
+## CI/CD y Deploy
+
+- **CI**: cada sub-repo tiene su pipeline en GitHub Actions (lint, build,
+  unit, integración y e2e) que corre en cada PR/push.
+- **E2E** vive en el pipeline del **frontend** y levanta el backend real + MySQL
+  de forma efímera en CI.
+- **Deploy**: por **buildpack** (Railway/Render) desde cada sub-repo. **Docker
+  NO es requisito**: el deploy no usa imágenes; el contenedor de MySQL
+  (`compose.dev.yaml`) es solo una comodidad opcional para desarrollo.
+- El deploy está **bloqueado si fallan los tests** del repo correspondiente.
 
 ---
 
 ## Configuración
 
 ### Variables de Entorno (Backend)
+
+Ver `MyRacing-Backend/.env.example` y heredar `MyRacing-DevOps/VARIABLES-ENTORNO-MERCADOPAGO.md`
+para el flujo de pagos.
 
 | Variable             | Descripción              | Valor por defecto     |
 | -------------------- | ------------------------ | --------------------- |
@@ -122,3 +150,13 @@ pnpm test     # Tests
 /api/race-users    Inscripciones
 /api/payment       Pagos (Mercado Pago)
 ```
+
+---
+
+## Política de Ramas
+
+Cada sub-repo sigue **Gitflow simplificado**:
+- `main` = estable / release (defensa).
+- `develop` = integración.
+- `feature/<tema>` → PR a `develop`.
+- Release: PR `develop` → `main` (+ tag).
