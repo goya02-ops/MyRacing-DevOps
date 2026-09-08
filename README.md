@@ -12,7 +12,7 @@ propio ciclo de vida (ramas, CI/CD, deploy):
 ```
 MyRacing-DevOps/                  ← este repo (orquestación y docs)
 ├── compose.dev.yaml              # Opcional: solo MySQL 8 para desarrollo
-├── docs/                         # Diagramas, minutas y documentación del TP
+├── docs/                         # Diagramas, política de git y minutas del TP
 ├── Enunciado.md                  # Consigna del trabajo práctico
 └── README.md
 ├── MyRacing-Backend/             → goya02-ops/MyRacing-Backend (clon local, NO versionado acá)
@@ -155,8 +155,10 @@ para el flujo de pagos.
 
 ## Política de Ramas
 
-Cada sub-repo sigue **Gitflow simplificado**:
+Cada sub-repo sigue **Gitflow simplificado** (ver `docs/politica-git/`):
 - `main` = estable / release (defensa).
 - `develop` = integración.
 - `feature/<tema>` → PR a `develop`.
 - Release: PR `develop` → `main` (+ tag).
+
+El seguimiento del equipo se registra en `docs/minutas/`.
