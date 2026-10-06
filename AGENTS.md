@@ -36,10 +36,17 @@ raíz).
 
 - Cada issue de GitHub = una tarea chica (1-4 hs), asignada a un integrante.
 - Rama por issue: `feature/<id-tema>` → PR a `develop` → PR a `main` (+tag).
-- CI en cada PR: lint + build + tests. **No se mergea a `develop` si fallan**
-  los tests.
-- Para mergear/deploy a `main` debe pasar además el **umbral de cobertura**
-  (≥80% nuevas líneas) y el Quality Gate de SonarCloud.
+- Todo el CI/CD es **automático, sin aprobación humana** (branch protection
+  sin reviewers: los gates deciden).
+- **Gates en `develop`**: solo se exige que pasen los tests
+  (frontend: Lint/Build/Unit tests/E2E; backend: Build/Tests).
+  No se exige coverage ni Quality Gate. **No se mergea a `develop`
+  si fallan los tests.**
+- **Gates en `main`**: se exige además **cobertura TOTAL ≥80%**
+  (job `Coverage` con thresholds de vitest, solo corre en PRs/pushes a `main`)
+  y el Quality Gate de SonarCloud. El workflow `Deploy` vuelve a chequear
+  el QG del proyecto vía API y aborta si no es OK.
+  **Sin gates verdes no hay deploy a producción.**
 - Commits atómicos por paso lógico; mensaje convencional
   (`feat:`/`fix:`/`test:`/`refactor:`/`chore:`).
 
