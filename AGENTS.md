@@ -55,6 +55,33 @@ raíz).
 - Commits atómicos por paso lógico; mensaje convencional
   (`feat:`/`fix:`/`test:`/`refactor:`/`chore:`).
 
+## Agentes y subagentes (TDD)
+
+Todo el trabajo con agentes sigue TDD, siempre: test en rojo →
+código mínimo en verde → refactor → todo verde. En código existente:
+tests de caracterización primero, después refactor, iterando.
+
+- Roles (valen para OpenCode o cualquier otra herramienta):
+  - `tester`: escribe **primero** el test que falla. En código existente
+    escribe tests de caracterización que fijan el comportamiento actual
+    (en issues de bug, el test debe exponer el bug). Verifica **ejecutando**,
+    no afirmando.
+  - `programador`: escribe el código **mínimo** para pasar a verde
+    (sin gold-plating), después refactoriza con los tests cuidándolo.
+    Commitea atómico y convencional.
+  - `juez`: **solo lectura, no modifica código**. Aprueba únicamente si
+    pasa la rúbrica senior: estructura según el `AGENTS.md` del repo,
+    legibilidad, cero hardcodeo, errores explícitos, sin código
+    muerto/duplicación, tipado estricto, cambio cubierto por tests,
+    gates verdes.
+- Pipeline por issue: `tester → programador → tester (re-verifica) → juez`.
+  Si el juez pide cambios: **máximo 3 rondas**, después escala al humano
+  dueño del issue.
+- El orquestador (sesión principal o humano) parte el issue, lanza en orden,
+  pushea y abre el PR. Los subagentes **no pushean ni crean PRs**.
+- Definiciones OpenCode de referencia en `<repo>/.opencode/agents/`
+  (versionadas con el código, prompts por stack).
+
 ## SonarCloud (Quality Gate)
 
 - El análisis corre en cada push/PR vía la GitHub App `SonarQubeCloud`.
