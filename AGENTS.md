@@ -43,10 +43,15 @@ raíz).
   No se exige coverage ni Quality Gate. **No se mergea a `develop`
   si fallan los tests.**
 - **Gates en `main`**: se exige además **cobertura TOTAL ≥80%**
-  (job `Coverage` con thresholds de vitest, solo corre en PRs/pushes a `main`)
-  y el Quality Gate de SonarCloud. El workflow `Deploy` vuelve a chequear
-  el QG del proyecto vía API y aborta si no es OK.
-  **Sin gates verdes no hay deploy a producción.**
+  (job `Coverage` con thresholds de vitest, solo corre en PRs/pushes a `main`),
+  el check `SonarCloud Code Analysis` y el job **`Quality Gate (proyecto)`**
+  (consulta el QG del proyecto completo vía API, no solo el código nuevo del PR).
+  Todo como checks requeridos en la branch protection, **sin aprobación humana**.
+- **Deploy a producción**: frontend lo publica Vercel automáticamente al mergear
+  a `main` (integración Git, sin cambios en el dashboard); como a `main` solo
+  entra código con todos los gates verdes, el auto-deploy siempre es seguro.
+  Backend lo despliega el workflow `Deploy` a Railway (con su propio guard de QG).
+  **Sin gates verdes no hay merge a `main`, y sin merge no hay deploy.**
 - Commits atómicos por paso lógico; mensaje convencional
   (`feat:`/`fix:`/`test:`/`refactor:`/`chore:`).
 
