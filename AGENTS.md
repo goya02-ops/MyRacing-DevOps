@@ -79,6 +79,11 @@ tests de caracterización primero, después refactor, iterando.
   dueño del issue.
 - El orquestador (sesión principal o humano) parte el issue, lanza en orden,
   pushea y abre el PR. Los subagentes **no pushean ni crean PRs**.
+- En React, la detección de prop drilling es parte del refactor TDD
+  (no opcional): props que cruzan 3+ niveles sin usarse → context,
+  composición o query.
+- Tests verdes + código ilegible = CAMBIOS igual: la legibilidad es
+  criterio de veto del juez (un compañero lo entiende en frío).
 - Definiciones OpenCode de referencia en `<repo>/.opencode/agents/`
   (versionadas con el código, prompts por stack).
 
