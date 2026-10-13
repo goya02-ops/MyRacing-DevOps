@@ -1,0 +1,18 @@
+{
+  "mcp": {
+    "servers": {
+      "mercadopago": {
+        "type": "remote",
+        "url": "https://mcp.mercadopago.com/mcp"
+      },
+      "railway": {
+        "type": "remote",
+        "url": "https://mcp.railway.com"
+      },
+      "vercel": {
+        "type": "remote",
+        "url": "https://mcp.vercel.com"
+      }
+    }
+  }
+}
