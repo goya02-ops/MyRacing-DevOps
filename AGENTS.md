@@ -10,12 +10,13 @@ Repo de **orquestación y docs**. NO es un monorepo: `MyRacing-Backend/` y
   `packageManager` fija el pnpm, corepack lo resuelve solo).
   `pnpm install` dentro de cada carpeta; proyectos pnpm separados, sin
   workspace hoisting desde la raíz.
-- pnpm 12 exige `allowBuilds` explícitos en `pnpm-workspace.yaml`
-  (postinstall scripts: `bcrypt`/`esbuild` en `true`).
+- pnpm 12 exige `allowBuilds` explícitos en cada `pnpm-workspace.yaml`
+  (backend: `bcrypt`/`esbuild` en `true`; frontend: `@swc/core`/`esbuild` en
+  `false`, con `onlyBuiltDependencies` para `bcrypt`/`@tailwindcss/oxide`).
 
 | Sub-proyecto | Verificación |
 | ------------ | ------------ |
-| `MyRacing-Backend` | `pnpm build && pnpm test` (Vitest; `pnpm test:coverage` solo para gate de `main`) |
+| `MyRacing-Backend` | `pnpm lint && pnpm build && pnpm test` (Vitest; `pnpm test:coverage` solo para gate de `main`) |
 | `MyRacing-Frontend` | `pnpm lint && pnpm build && pnpm test` (`lint` es `eslint . --max-warnings 0`; E2E: `pnpm test:e2e`) |
 
 ## Base de datos
@@ -42,11 +43,17 @@ Repo de **orquestación y docs**. NO es un monorepo: `MyRacing-Backend/` y
   `pnpm exec playwright install --with-deps chromium` — **nunca `npx`**
   (Sonar S6505/S8543: `npx` instala on-demand sin versión fijada; `pnpm exec`
   usa el binario lockeado). `playwright.config.ts` usa `reuseExistingServer`.
+- E2E de pagos contra sandbox MP real (sin mocks de red): seed login-first
+  (registros limitados a 5 req/15min/IP), emails `@test.com` válidos
+  (MP rechaza otros dominios como `payer.email`), no tipear iframes de MP,
+  `test.setTimeout()` (la opción `timeout` de `test()` la ignora Playwright),
+  `trace` + `screenshot` on failure, DB efímera requerida.
 
 ## Metodología de trabajo
 
 - Cada issue de GitHub = una tarea chica (1-4 hs), asignada a un integrante.
 - Rama por issue: `feature/<id-tema>` → PR a `develop` → PR a `main` (+tag).
+  Trabajo sin issue (docs, setup, tooling): `chore/<tema>` → PR a `develop`.
 - CI/CD **automático, sin aprobación humana** (branch protection sin
   reviewers: los gates deciden).
 - **Gates en `develop`**: solo que pasen los tests
@@ -84,6 +91,38 @@ En código existente: tests de caracterización primero, después refactor.
   Si el juez pide cambios: **máximo 3 rondas**, después escala al humano.
 - El orquestador parte el issue, lanza en orden, pushea y abre el PR.
   Los subagentes **no pushean ni crean PRs**.
+- En código (comentarios, títulos/nombres de tests) prohibido referenciar
+  issues (`FE-12`, `BE-3`, `#13`): solo en commits, PRs e issues.
+- Onboarding: al iniciar un `init` (de skill o de sesión), preguntar a la
+  persona si conoce esta metodología; si no, explicarla antes de arrancar.
+
+## Trabajo multi-chat
+
+- **Chat orquestador** (este, parado en DevOps): backlog, prioridades,
+  asignaciones, decisiones que cruzan repos y merges. No implementa.
+- **Chats por repo**: ejecutan las issues de su repo, parados en su raíz,
+  con sus skills. No tocan el otro repo. En cada uno rige el mismo pipeline
+  (orquestador local + `tester → programador → juez`, máximo 3 rondas).
+- **Escalación**: si un agente detecta algo que afecta al otro repo
+  (contrato de API, shape de errores, auth, pagos), lo eleva al orquestador
+  con archivo:línea y propuesta, en vez de resolverlo por su cuenta.
+- **Derivación**: si el orquestador ve que una tarea pertenece a un repo,
+  la deriva a su chat con número de issue.
+- **Regla de oro**: lo que cruce repos se acuerda en el orquestador
+  **antes** de implementarse en los chats.
+
+## Skills
+
+- Vendoreadas en `<repo>/.agents/skills/` (commiteadas, las usa cualquiera
+  sin instalar nada). Si el skill tool no resuelve el ID, leer el
+  `SKILL.md` directo (fallback válido).
+  - Frontend: `react-best-practices`, `composition-patterns`,
+    `playwright-best-practices`, `tdd`, `impeccable`, `security-audit`.
+  - Backend: `mysql`, `docker-expert`, `multi-stage-dockerfile`, `tdd`,
+    `security-audit`, `typescript-advanced-types`.
+- Globales en `~/.agents/skills/` (cada integrante en su máquina):
+  `verification-before-completion`, `code-review`, `find-skills`.
+- Cargar solo cuando aplique.
 
 ## SonarCloud (Quality Gate)
 
@@ -107,6 +146,17 @@ En código existente: tests de caracterización primero, después refactor.
 - Railway/Vercel: deploys, logs, variables. El MCP no otorga permisos: para
   ver los mismos deploys hay que agregar a cada uno en el workspace (Railway),
   el team (Vercel) o la cuenta de test (MP).
+- `mui` (solo frontend, en su `opencode.json`): server **local** con binario
+  lockeado `@mui/mcp` vía `pnpm exec` (sin auth). Docs y generación de
+  código MUI para la migración.
+
+## Producto y diseño
+
+- `PRODUCT.md` / `DESIGN.md` (raíz del frontend) son artefactos compartidos
+  commiteados: salen de `/impeccable init` y los lee cada comando de diseño.
+- Telemetría de Impeccable apagada para todo el proyecto vía
+  `"telemetry": false` en `.impeccable/config.json` (solo ese archivo de
+  `.impeccable/` se commitea; capturas y sesiones van por `.gitignore`).
 
 ## Documentos de detalle
 
