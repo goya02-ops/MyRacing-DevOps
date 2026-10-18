@@ -10,12 +10,13 @@ Repo de **orquestación y docs**. NO es un monorepo: `MyRacing-Backend/` y
   `packageManager` fija el pnpm, corepack lo resuelve solo).
   `pnpm install` dentro de cada carpeta; proyectos pnpm separados, sin
   workspace hoisting desde la raíz.
-- pnpm 12 exige `allowBuilds` explícitos en `pnpm-workspace.yaml`
-  (postinstall scripts: `bcrypt`/`esbuild` en `true`).
+- pnpm 12 exige `allowBuilds` explícitos en cada `pnpm-workspace.yaml`
+  (backend: `bcrypt`/`esbuild` en `true`; frontend: `@swc/core`/`esbuild` en
+  `false`, con `onlyBuiltDependencies` para `bcrypt`/`@tailwindcss/oxide`).
 
 | Sub-proyecto | Verificación |
 | ------------ | ------------ |
-| `MyRacing-Backend` | `pnpm build && pnpm test` (Vitest; `pnpm test:coverage` solo para gate de `main`) |
+| `MyRacing-Backend` | `pnpm lint && pnpm build && pnpm test` (Vitest; `pnpm test:coverage` solo para gate de `main`) |
 | `MyRacing-Frontend` | `pnpm lint && pnpm build && pnpm test` (`lint` es `eslint . --max-warnings 0`; E2E: `pnpm test:e2e`) |
 
 ## Base de datos
